@@ -1,13 +1,18 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 // const shortid = require('shortid');
 const crypto = require("crypto");
 
 require('dotenv').config();
+
+app.use(cors());
+app.use(express.static('public'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -21,26 +26,18 @@ const exerciseSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
 	username: { type: String, required: true },
-  _id: String
 });
 
 let User = mongoose.model('User', userSchema);
 
 let Exercise = mongoose.model('Exercise', exerciseSchema);
 
-  app.post('/api/users', (req, res,next) => {
+  app.post('/api/users', (req, res) => {
     let User1 = new User({
-      name: "gate",
-      age: 42,
-      favoriteFoods: ["parsely", "bread"]
+      username: req.body.username
     });
-    User1.save(function(err,data) {
-      if (err) { 
-        return next(err)
-      } else {
-        res.json(data)
-      }
-    });
+    User1.save()
+    res.json(User1)
   });
 
 
