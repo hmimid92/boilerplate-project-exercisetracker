@@ -95,7 +95,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   const log = exercises.map(e => ({
     description: e.description,
     duration: e.duration,
-    date: (e.date).toDateString()
+    date: e.date.toDateString()
   }))
 
   if(req.query.from === undefined && req.query.from === undefined && req.query.from === undefined) {
