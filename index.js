@@ -78,10 +78,10 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   const user = await User.findById(req.params._id);
   let dateObj = {}
   if (req.query.from) {
-    dateObj["$gte"] = new Date(req.query.from)
+    dateObj["$gte"] = new Date(req.query.from).toDateString()
   }
   if (req.query.to){
-    dateObj["$lte"] = new Date(req.query.to)
+    dateObj["$lte"] = new Date(req.query.to).toDateString()
   }
   let filter = {
     user_id: req.params._id
