@@ -101,15 +101,12 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
       })
       } else {
         const result_log = await ExerciseUser.find({_id: req.params._id });
-        let count_limit = parseInt(req.query.limit);
-        if(count_limit === 0 ) {
-          count_limit = result_log[0].logUser.length; 
-        }
+        let count_limit = parseInt(req.query.limit) === 0 ? result_log[0].logUser.length : parseInt(req.query.limit);
+        
         const arr = result_log[0].logUser.filter((el) => Date.parse(el.date) >= Date.parse(new Date(req.query.from)) && Date.parse(el.date) <= Date.parse(new Date(req.query.to))).filter((el,i) => i < count_limit)
         if(count_limit >= arr.length) {
-          count_limit = arr.length; 
+          count_limit = arr.length;
         }
-        
         res.json({
             _id: req.params._id,
             username: result_log[0].username,
