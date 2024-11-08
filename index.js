@@ -67,7 +67,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
         username: user.username,
         description: exercise.description,
         duration: exercise.duration,
-        date: new Date(exercise.date).toDateString()
+        date: (new Date(exercise.date)).toDateString()
       })
     }
 })
@@ -95,7 +95,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   const log = exercises.map(e => ({
     description: e.description,
     duration: e.duration,
-    date: e.date
+    date: e.date.toDateString()
   }))
 
   if(req.query.from === undefined && req.query.from === undefined && req.query.from === undefined) {
