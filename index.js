@@ -3,8 +3,6 @@ const app = express()
 const cors = require('cors')
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-// const shortid = require('shortid');
-const crypto = require("crypto");
 
 require('dotenv').config();
 
@@ -17,12 +15,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const exerciseSchema = new mongoose.Schema({
-  username: String,
 	description: { type: String},
 	duration: { type: Number },
 	date: String,
-  _id: String
+  _id: false
   });
+
+let Exercise = mongoose.model('Exercise', exerciseSchema);
 
 const userSchema = new mongoose.Schema({
 	username: { type: String, required: true },
@@ -30,7 +29,17 @@ const userSchema = new mongoose.Schema({
 
 let User = mongoose.model('User', userSchema);
 
-let Exercise = mongoose.model('Exercise', exerciseSchema);
+const exerciseSchemaUser = new mongoose.Schema({
+    username: String,
+    count: Number,
+    _id: String,
+    logUser: [exerciseSchema]
+    });
+
+let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
+
+
+
 
   app.post('/api/users', async (req, res) => {
     try {
@@ -44,62 +53,59 @@ let Exercise = mongoose.model('Exercise', exerciseSchema);
     }
   });
 
-  let logs = {};
+  let users = [];
   app.post('/api/users/:_id/exercises', async (req, res) => {
-    const user_name = await User.findById(req.params._id);
-    // console.log(user_name._id.toString())
-      if(!Object.keys(logs).includes(req.params._id)) {
-        const Exercice1 = new Exercise({
-          username: user_name.username,
-          description: req.body.description,
-          duration: parseInt(req.body.duration),
-          date: req.body.date === "" ? (new Date(Date.now())).toDateString() : (new Date(req.body.date)).toDateString(),
-          _id: req.params._id
-        });
-        logs = {
-          [req.params._id]: {
-            _id: req.params._id,
-            username: user_name.username,
-            count: 1,
-            log: [{
-              description: req.body.description,
-              duration: parseInt(req.body.duration),
-              date: req.body.date === "" ? (new Date(Date.now())).toDateString() : (new Date(req.body.date)).toDateString(),
-            }]
-          }      
-        }   
-          await Exercice1.save()
-          res.json(Exercice1)
-      } else {
-
-        const obj_new = Exercise.findOneAndUpdate({_id: req.params._id},
-          {description: req.body.description,
-          duration: parseInt(req.body.duration),
-          date: req.body.date === "" ? (new Date(Date.now())).toDateString() : (new Date(req.body.date)).toDateString()},{new: true}
-        )
-        const Exercice1_update = new Exercise({
-          username: user_name.username,
-          description: obj_new.description,
-          duration: obj_new.duration,
-          date: obj_new.date,
-          _id: req.params._id
-        });
-        logs[req.params._id] = {
-          ...logs[req.params._id],
-          count: logs[req.params._id].count + 1,
-          log: [...logs[req.params._id].log,{
-            description: obj_new.description,
-            duration: obj_new.duration,
-            date: obj_new.date,
-          }]
-         }    
-         await Exercice1_update.save()
-         res.json(Exercice1_update)
-      }  
+      const user_name = await User.findById(req.params._id);
+      const Exercice1 = new Exercise({
+        description: req.body.description,
+        duration: parseInt(req.body.duration),
+        date: req.body.date === "" ? (new Date(Date.now())).toDateString() : (new Date(req.body.date)).toDateString(),
+      });
+    if(!users.includes(req.params._id)) {
+     let Exercise_full = new ExerciseUser({
+        username: user_name.username,
+        count: 1,
+        _id: req.params._id,
+        logUser: [Exercice1]
+      });
+      await Exercise_full.save()
+    } else {
+      let resu = await ExerciseUser.findById(req.params._id);
+      resu.logUser.push(Exercice1)
+      ExerciseUser.updateOne({_id: req.params._id}, {logUser: 
+        resu.logUser,count: resu.count + 1 }).exec()
+    }
+    if(!users.includes(req.params._id)) {
+      users.push(req.params._id)
+    }
+    const exercice_fields = Exercice1._doc;
+    res.json({_id: req.params._id, username: user_name.username,...exercice_fields})
   });
 
   app.get('/api/users/:_id/logs',  async (req, res) => {
-       res.json(logs[req.params._id])
+    try {
+      if(req.query.from === undefined && req.query.to === undefined && req.query.limit === undefined) {
+        const result = await ExerciseUser.find({_id: req.params._id });
+        res.json(result[0])
+      } else {
+        const result_log = await ExerciseUser.find({_id: req.params._id });
+        let count_limit = parseInt(req.query.limit);
+        const arr = result_log[0].logUser.filter((el) => Date.parse(el.date) >= Date.parse(new Date(req.query.from)) && Date.parse(el.date) <= Date.parse(new Date(req.query.to))).filter((el,i) => i < count_limit)
+        if(count_limit === 0 || count_limit >= arr.length) {
+          count_limit = arr.length; 
+        }
+        res.json({
+            _id: req.params._id,
+            username: result_log[0].username,
+            from: (new Date(req.query.from)).toDateString(),
+            to: (new Date(req.query.to)).toDateString(),
+            count: count_limit,
+            log: arr    
+        })
+      }
+   } catch(err) {
+      console.log(err);
+   }
    });
 
   app.get('/api/users',  async (req, res) => {
