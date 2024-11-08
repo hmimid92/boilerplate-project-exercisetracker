@@ -51,13 +51,10 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
         _id: id_cry
       });
         await User1.save()
-        let obj3 = {
+        res.json({
           username: req.body.username,
         _id: id_cry
-          }
-        res.json({
-          obj3
-        })
+          })
     } catch (er) {
        res.json({error: er})
     }
@@ -100,10 +97,11 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
       users.push(req.params._id)
     }
     const exercice_fields = Exercice1._doc;
-    let obj2 = {_id: req.params._id, username: user_name.username, date: exercice_fields.date, duration: exercice_fields.duration, description: exercice_fields.description }
-    res.json({
-      ...obj2
-    })
+    res.json({_id: req.params._id, username: user_name.username,
+       date: exercice_fields.date, 
+       duration: exercice_fields.duration, 
+       description: exercice_fields.description
+       })
   });
 
   app.get('/api/users/:_id/logs',  async (req, res) => {
@@ -114,15 +112,12 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
         } catch (error) {
           console.log(error)
         }
-        let obj1 = {
+        res.json({
           _id: req.params._id,
           username: result[0].username,
           count: result[0].count,
           log: result[0].logUser    
-      }
-        res.json({
-          ...obj1
-        })
+      })
       } else {
         let result_log;
         try {
@@ -137,19 +132,14 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
         if(count_limit >= arr.length) {
           count_limit = arr.length;
         }
-        const obj9 = {
+        res.json({
           _id: req.params._id,
           username: result_log[0].username,
           from: (new Date(req.query.from)).toDateString(),
           to: (new Date(req.query.to)).toDateString(),
           count: count_limit,
           log: arr    
-      };
-        res.json(
-          {
-            ...obj9
-          }
-        )
+      })
       }
    });
 
