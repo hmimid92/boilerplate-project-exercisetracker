@@ -24,7 +24,7 @@ const Exercise = mongoose.model("Exercise", ExerciseSchema);
 
 app.use(cors())
 app.use(express.static('public'))
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: false }))
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
@@ -90,12 +90,12 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     filter.date = dateObj;
   }
 
-  const exercises = await Exercise.find(filter).limit(parseInt(req.query.limit))
+  const exercises = await Exercise.find(filter).limit(+req.query.limit ?? 500)
   
   const log = exercises.map(e => ({
     description: e.description,
     duration: e.duration,
-    date: e.date.toISOString()
+    date: e.date.toDateString()
   }))
 
   if(req.query.from === undefined && req.query.from === undefined && req.query.from === undefined) {
