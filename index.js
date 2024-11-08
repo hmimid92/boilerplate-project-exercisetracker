@@ -3,6 +3,7 @@ const app = express()
 const cors = require('cors')
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const crypto = require("crypto");
 
 require('dotenv').config();
 
@@ -25,6 +26,7 @@ let Exercise = mongoose.model('Exercise', exerciseSchema);
 
 const userSchema = new mongoose.Schema({
 	username: { type: String, required: true },
+  _id: String
   });
 
 let User = mongoose.model('User', userSchema);
@@ -43,11 +45,16 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
 
   app.post('/api/users', async (req, res) => {
     try {
+      const id_cry = crypto.randomBytes(16).toString("hex");
       let User1 = new User({
-        username: req.body.username
+        username: req.body.username,
+        _id: id_cry
       });
         await User1.save()
-        res.json(User1)
+        res.json({
+          username: req.body.username,
+        _id: id_cry
+        })
     } catch (er) {
        res.json({error: er})
     }
@@ -86,14 +93,23 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
     try {
       if(req.query.from === undefined && req.query.to === undefined && req.query.limit === undefined) {
         const result = await ExerciseUser.find({_id: req.params._id });
-        res.json(result[0])
+        res.json({
+          _id: req.params._id,
+          username: result[0].username,
+          count: result[0].count,
+          log: result[0].logUser    
+      })
       } else {
         const result_log = await ExerciseUser.find({_id: req.params._id });
         let count_limit = parseInt(req.query.limit);
+        if(count_limit === 0 ) {
+          count_limit = result_log[0].logUser.length; 
+        }
         const arr = result_log[0].logUser.filter((el) => Date.parse(el.date) >= Date.parse(new Date(req.query.from)) && Date.parse(el.date) <= Date.parse(new Date(req.query.to))).filter((el,i) => i < count_limit)
-        if(count_limit === 0 || count_limit >= arr.length) {
+        if(count_limit >= arr.length) {
           count_limit = arr.length; 
         }
+        
         res.json({
             _id: req.params._id,
             username: result_log[0].username,
