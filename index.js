@@ -59,7 +59,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
         user_id: user._id,
         description: req.body.description,
         duration: parseInt(req.body.duration),
-        date: req.body.date ? new Date(req.body.date) : new Date()
+        date: req.body.date ? (new Date(req.body.date)).toDateString() : (new Date()).toDateString()
       })
       const exercise = await exerciseObj.save()
       res.json({
@@ -90,12 +90,12 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     filter.date = dateObj;
   }
 
-  const exercises = await Exercise.find(filter).limit(+req.query.limit ?? 500)
+  const exercises = await Exercise.find(filter).limit(parseInt(req.query.limit))
   
   const log = exercises.map(e => ({
     description: e.description,
     duration: e.duration,
-    date: e.date.toDateString()
+    date: e.date
   }))
 
   if(req.query.from === undefined && req.query.from === undefined && req.query.from === undefined) {
