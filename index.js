@@ -10,7 +10,7 @@ require('dotenv').config();
 app.use(cors());
 app.use(express.static('public'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -51,9 +51,12 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
         _id: id_cry
       });
         await User1.save()
-        res.json({
+        let obj3 = {
           username: req.body.username,
         _id: id_cry
+          }
+        res.json({
+          obj3
         })
     } catch (er) {
        res.json({error: er})
@@ -62,8 +65,13 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
 
   let users = [];
   app.post('/api/users/:_id/exercises', async (req, res) => {
+    let user_name;
     try {
-      const user_name = await User.findById(req.params._id);
+       user_name = await User.findById(req.params._id);
+      
+    } catch (error) {
+      console.log(error)
+    }
       const Exercice1 = new Exercise({
         description: req.body.description,
         duration: parseInt(req.body.duration),
@@ -80,49 +88,69 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
     } else {
       let resu = await ExerciseUser.findById(req.params._id);
       resu.logUser.push(Exercice1)
-      ExerciseUser.updateOne({_id: req.params._id}, {logUser: 
-        resu.logUser,count: resu.count + 1 }).exec()
+      try {
+        ExerciseUser.updateOne({_id: req.params._id}, {logUser: 
+          resu.logUser,count: resu.count + 1 }).exec()
+      } catch (error) {
+        console.log(error)
+      }
+      
     }
     if(!users.includes(req.params._id)) {
       users.push(req.params._id)
     }
     const exercice_fields = Exercice1._doc;
-    res.json({_id: req.params._id, username: user_name.username, date: exercice_fields.date, duration: exercice_fields.duration, description: exercice_fields.description })
-    } catch (err) {
-      console,log(err)
-    }
+    let obj2 = {_id: req.params._id, username: user_name.username, date: exercice_fields.date, duration: exercice_fields.duration, description: exercice_fields.description }
+    res.json({
+      ...obj2
+    })
   });
 
   app.get('/api/users/:_id/logs',  async (req, res) => {
-    try {
+    let result;
       if(req.query.from === undefined && req.query.to === undefined && req.query.limit === undefined) {
-        const result = await ExerciseUser.find({_id: req.params._id });
-        res.json({
+        try {
+           result = await ExerciseUser.find({_id: req.params._id });
+        } catch (error) {
+          console.log(error)
+        }
+        let obj1 = {
           _id: req.params._id,
           username: result[0].username,
           count: result[0].count,
           log: result[0].logUser    
-      })
+      }
+        res.json({
+          ...obj1
+        })
       } else {
-        const result_log = await ExerciseUser.find({_id: req.params._id });
+        let result_log;
+        try {
+         result_log = await ExerciseUser.find({_id: req.params._id });
+          
+        } catch (error) {
+          console.log(error)
+        }
         let count_limit = parseInt(req.query.limit) === 0 ? result_log[0].logUser.length : parseInt(req.query.limit);
         
         const arr = result_log[0].logUser.filter((el) => Date.parse(el.date) >= Date.parse(new Date(req.query.from)) && Date.parse(el.date) <= Date.parse(new Date(req.query.to))).filter((el,i) => i < count_limit)
         if(count_limit >= arr.length) {
           count_limit = arr.length;
         }
-        res.json({
-            _id: req.params._id,
-            username: result_log[0].username,
-            from: (new Date(req.query.from)).toDateString(),
-            to: (new Date(req.query.to)).toDateString(),
-            count: count_limit,
-            log: arr    
-        })
+        const obj9 = {
+          _id: req.params._id,
+          username: result_log[0].username,
+          from: (new Date(req.query.from)).toDateString(),
+          to: (new Date(req.query.to)).toDateString(),
+          count: count_limit,
+          log: arr    
+      };
+        res.json(
+          {
+            ...obj9
+          }
+        )
       }
-   } catch(err) {
-      console.log(err);
-   }
    });
 
   app.get('/api/users',  async (req, res) => {
