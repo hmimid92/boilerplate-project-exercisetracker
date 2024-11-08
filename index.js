@@ -79,7 +79,7 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
       users.push(req.params._id)
     }
     const exercice_fields = Exercice1._doc;
-    res.json({_id: req.params._id, username: user_name.username,...exercice_fields})
+    res.json({_id: req.params._id, username: user_name.username, date: exercice_fields.date, duration: exercice_fields.duration, description: exercice_fields.description })
   });
 
   app.get('/api/users/:_id/logs',  async (req, res) => {
