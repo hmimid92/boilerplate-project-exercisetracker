@@ -97,13 +97,26 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     duration: e.duration,
     date: e.date.toDateString()
   }))
+
+  if(req.query.from === undefined && req.query.from === undefined && req.query.from === undefined) {
+    res.json({
+      username: user.username,
+      count: exercises.length,
+      _id: user._id,
+      log
+    })
+  } else {
+    res.json({
+      username: user.username,
+      count: exercises.length,
+      _id: user._id,
+      form: req.query.from ? (new Date(req.query.from)).toDateString() : (new Date()).toDateString(),
+      to: req.query.to ? (new Date(req.query.to)).toDateString() : (new Date()).toDateString(),
+      log
+    })
+  }
+    
   
-  res.json({
-    username: user.username,
-    count: exercises.length,
-    _id: user._id,
-    log
-  })
 })
 
 
