@@ -59,7 +59,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
         user_id: user._id,
         description: req.body.description,
         duration: parseInt(req.body.duration),
-        date: req.body.date ? (new Date(req.body.date)).toDateString() : (new Date()).toDateString()
+        date: req.body.date ? (new Date(req.body.date)).toDateString() : (new Date(Date.now())).toDateString()
       })
       const exercise = await exerciseObj.save()
       res.json({
@@ -95,7 +95,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   const log = exercises.map(e => ({
     description: e.description,
     duration: e.duration,
-    date: e.date
+    date: (e.date).toDateString()
   }))
 
   if(req.query.from === undefined && req.query.from === undefined && req.query.from === undefined) {
