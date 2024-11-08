@@ -45,7 +45,7 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
 
   app.post('/api/users', async (req, res) => {
     try {
-      const id_cry = crypto.randomBytes(16).toString("hex");
+      const id_cry = crypto.randomBytes(12).toString("hex");
       let User1 = new User({
         username: req.body.username,
         _id: id_cry
@@ -62,6 +62,7 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
 
   let users = [];
   app.post('/api/users/:_id/exercises', async (req, res) => {
+    try {
       const user_name = await User.findById(req.params._id);
       const Exercice1 = new Exercise({
         description: req.body.description,
@@ -87,6 +88,9 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
     }
     const exercice_fields = Exercice1._doc;
     res.json({_id: req.params._id, username: user_name.username, date: exercice_fields.date, duration: exercice_fields.duration, description: exercice_fields.description })
+    } catch (err) {
+      console,log(err)
+    }
   });
 
   app.get('/api/users/:_id/logs',  async (req, res) => {
