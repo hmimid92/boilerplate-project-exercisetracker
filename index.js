@@ -63,16 +63,17 @@ let ExerciseUser = mongoose.model('ExerciseUser', exerciseSchemaUser);
   let users = [];
   app.post('/api/users/:_id/exercises', async (req, res) => {
     let user_name;
+    let date_parse;
     try {
        user_name = await User.findById(req.params._id);
-      
+       date_parse = req.body.date === "" ? (new Date(Date.now())).toDateString() : (new Date(req.body.date)).toDateString()
     } catch (error) {
       console.log(error)
     }
       const Exercice1 = new Exercise({
         description: req.body.description,
         duration: parseInt(req.body.duration),
-        date: req.body.date === "" ? (new Date(Date.now())).toDateString() : (new Date(req.body.date)).toDateString(),
+        date: date_parse,
       });
     if(!users.includes(req.params._id)) {
      let Exercise_full = new ExerciseUser({
